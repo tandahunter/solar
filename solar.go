@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"math"
 
 	"github.com/tandahunter/solarutil"
@@ -12,6 +11,8 @@ const G = 6.67384e-11
 
 //SEC_PER_STEP is the number of seconds in the sim per step
 const SEC_PER_STEP = 8
+const STEPS_PER_FRAME = 10000
+const METERS_PER_UNIT = 1000000000
 
 func getAcceleration(distance, starMass float64) float64 {
 	return G * starMass / (math.Pow(distance, float64(2)))
@@ -36,8 +37,17 @@ func main() {
 }
 
 func performOrbitalManoeuvre(star, planet *solarutil.Planet) {
-	d := star.DistanceTo(planet)
-	a := getAcceleration(d, star.Mass)
+	vel := solarutil.NewVector(0, 0, 0)
+	speed := float64(0)
 
-	fmt.Printf("%f:%f\n", a, d)
+	for i := 0; i < STEPS_PER_FRAME; i++ {
+		speed = getAcceleration(star.DistanceTo(planet), star.Mass)
+		vel.SubVectors(star.Vector, planet.Vector)
+		vel.SetLength(speed / METERS_PER_UNIT)
+		planet.Velocity.Add(vel)
+
+		planet.Vector.X += planet.Velocity.X * SEC_PER_STEP
+		planet.Vector.Y += planet.Velocity.Y * SEC_PER_STEP
+		planet.Vector.Z += planet.Velocity.Z * SEC_PER_STEP
+	}
 }
