@@ -103,12 +103,30 @@ func initFrameTicker() {
 	}()
 }
 
-func getClient(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
+func validateGet(w http.ResponseWriter, r *http.Request) bool {
+	return validateRestMethod(w, r, http.MethodGet)
+}
+
+func validatePost(w http.ResponseWriter, r *http.Request) bool {
+	return validateRestMethod(w, r, http.MethodPost)
+}
+
+func validateRestMethod(w http.ResponseWriter, r *http.Request, method string) bool {
+	if r.Method != method {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-	} else {
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		w.Header().Set("Access-Control-Allow-Origin", "*")
+		return false
+	}
+	return true
+}
+
+func setCORSHeader(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+}
+
+func getClient(w http.ResponseWriter, r *http.Request) {
+	if validateGet(w, r) {
+		setCORSHeader(w)
 
 		f, err := ioutil.ReadFile("resources/client.html")
 		if err != nil {
@@ -120,25 +138,19 @@ func getClient(w http.ResponseWriter, r *http.Request) {
 }
 
 func getSun(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-	} else {
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		w.Header().Set("Access-Control-Allow-Origin", "*")
+	if validateGet(w, r) {
+		setCORSHeader(w)
 		json.NewEncoder(w).Encode(sun)
 	}
 }
 
 func getPlanets(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-
+		setCORSHeader(w)
 		json.NewEncoder(w).Encode(planets)
 
 	} else if r.Method == http.MethodPost {
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		w.Header().Set("Access-Control-Allow-Origin", "*")
+		setCORSHeader(w)
 
 		var planet solarutil.Planet
 
@@ -161,11 +173,8 @@ func getPlanets(w http.ResponseWriter, r *http.Request) {
 }
 
 func getPlanetVector(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-	} else {
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		w.Header().Set("Access-Control-Allow-Origin", "*")
+	if validateGet(w, r) {
+		setCORSHeader(w)
 
 		sid := mux.Vars(r)["id"]
 		id, err := strconv.Atoi(sid)
@@ -184,9 +193,8 @@ func getPlanetVector(w http.ResponseWriter, r *http.Request) {
 }
 
 func getPlanet(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodGet {
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		w.Header().Set("Access-Control-Allow-Origin", "*")
+	if validateGet(w, r) {
+		setCORSHeader(w)
 
 		sid := mux.Vars(r)["id"]
 		id, err := strconv.Atoi(sid)
