@@ -94,7 +94,9 @@ func initFrameTicker() {
 	go func() {
 		for range ticker.C {
 			for _, planet := range *planets {
-				performOrbitalManoeuvre(sun, planet)
+				go func(s *solarutil.Star, p *solarutil.Planet) {
+					performOrbitalManoeuvre(s, p)
+				}(sun, planet)
 			}
 			manoeuvreCount++
 		}
@@ -128,12 +130,33 @@ func getSun(w http.ResponseWriter, r *http.Request) {
 }
 
 func getPlanets(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-	} else {
+	if r.Method == http.MethodGet {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.Header().Set("Access-Control-Allow-Origin", "*")
+
 		json.NewEncoder(w).Encode(planets)
+
+	} else if r.Method == http.MethodPost {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+
+		var planet solarutil.Planet
+
+		decoder := json.NewDecoder(r.Body)
+		err := decoder.Decode(&planet)
+
+		if err == nil {
+			*planets = append(*planets, &planet)
+			planet.ID = len(*planets)
+			json.NewEncoder(w).Encode(planet.ID)
+
+			log.Println("Added planet")
+		} else {
+			http.Error(w, err.Error(), http.StatusExpectationFailed)
+			log.Println(err.Error())
+		}
+	} else {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
 }
 

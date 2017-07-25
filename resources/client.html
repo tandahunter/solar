@@ -33,9 +33,16 @@
         var offsetX = (a) => a += (window.innerWidth || document.body.clientWidth) / 2,
             offsetY = (a) => a += (window.innerHeight || document.body.clientHeight) / 2;
 
+        var reverseOffsetX = (a) => a -= (window.innerWidth || document.body.clientWidth) / 2,
+            reverseOffsetY = (a) => a -= (window.innerHeight || document.body.clientHeight) / 2;
+
         var sun = null;
+        var addingPlanet = null;
 
         window.onresize = resize;
+        window.onmousedown = beginAddPlanet;
+        window.onmousemove = setPlanetSpeed;
+        window.onmouseup = endAddPlanet;
 
         function webServer() {
             return location.origin;
@@ -48,8 +55,58 @@
         function resize() {
             if (sun !== null) {
                 var p = $('.sun').first();
-                $(p).css("left", offsetX(sun.vector.X) + 'px')
-                $(p).css("top", offsetY(sun.vector.Z) + 'px')
+                $(p).css("left", offsetX(sun.vector.x) + 'px')
+                $(p).css("top", offsetY(sun.vector.z) + 'px')
+            }
+        }
+
+        function beginAddPlanet(evt) {
+            var p = document.createElement("div");
+            document.body.appendChild(p);
+            p.className = "planet";
+
+            $(p).css("left", evt.clientX + 'px')
+            $(p).css("top", evt.clientY + 'px')
+
+            addingPlanet = p;
+        }
+
+        function setPlanetSpeed(evt) {
+
+        }
+
+        function endAddPlanet(evt) {
+            evt = evt || event;
+
+            if (addingPlanet !== null) {
+                var planet = {
+                    id: 0,
+                    mass: 5.9721986e24,
+                    name: "",
+                    vector: {
+                        x: reverseOffsetX(evt.clientX),
+                        y: 0,
+                        z: reverseOffsetY(evt.clientY)
+                    },
+                    velocity: {
+                        x: 0,
+                        y: 0,
+                        z: 2.963e-5
+                    }
+                }
+
+                $.post(webServer() + "/Planets/", JSON.stringify(planet), (d, s, x) => {
+                    var x = parseInt(d);
+                    if (NaN !== x) {
+                        addingPlanet.id = x;
+                    }
+                }).then(function() {
+                    if (addingPlanet.id === null) {
+                        document.body.removeChild(addingPlanet);
+                    }
+
+                    addingPlanet = null;
+                })
             }
         }
 
@@ -60,8 +117,8 @@
                 var p = document.createElement("div");
                 document.body.appendChild(p);
                 p.className = "sun";
-                $(p).css("left", offsetX(d.vector.X) + 'px')
-                $(p).css("top", offsetY(d.vector.Z) + 'px')
+                $(p).css("left", offsetX(d.vector.x) + 'px')
+                $(p).css("top", offsetY(d.vector.z) + 'px')
             })
         }());
 
@@ -77,8 +134,8 @@
                     a.value = d[i].id;
                     p.attributes.setNamedItem(a);
 
-                    $(p).css("left", offsetX(d[i].vector.X) + 'px');
-                    $(p).css("top", offsetY(d[i].vector.Z) + 'px');
+                    $(p).css("left", offsetX(d[i].vector.x) + 'px');
+                    $(p).css("top", offsetY(d[i].vector.z) + 'px');
                 }
             })
         }());
@@ -99,8 +156,8 @@
                             var p = $('#' + planet.id).first();
 
                             if (p !== null) {
-                                $(p).css("left", offsetX(planet.vector.X) + 'px');
-                                $(p).css("top", offsetY(planet.vector.Z) + 'px');
+                                $(p).css("left", offsetX(planet.vector.x) + 'px');
+                                $(p).css("top", offsetY(planet.vector.z) + 'px');
                             }
                         }
                     }
