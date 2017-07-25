@@ -7,6 +7,7 @@ import (
 	"log"
 	"math"
 	"net/http"
+	"os/exec"
 	"time"
 
 	"strconv"
@@ -20,9 +21,11 @@ const (
 	//G is the gravitational constant
 	G = 6.67384e-11
 	//SecondsPerStep is the number of seconds in the sim per step
-	SecondsPerStep = 4
+	//more seconds per step = less accuracy.  Originally 8
+	SecondsPerStep = 200 //8
 	//StepsPerFrame determines how many calculations should be calculated per cycle
-	StepsPerFrame = 10000
+	//more steps per frame = less performance.  Originally 10000
+	StepsPerFrame = 250 // 10000
 	//MetersPerUnit is a gigameter
 	MetersPerUnit = 1000000000
 	//WebServerPort is the port on which to open the web router
@@ -59,6 +62,7 @@ func initRouter() {
 		log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", WebServerPort), router))
 	}()
 
+	exec.Command("cmd", "/c", "start", "http://localhost:8080/Client/").Start()
 	fmt.Printf("Solar is listening on port:%d", WebServerPort)
 
 	http.HandleFunc("/Planets/", streamPlanets)
@@ -79,7 +83,7 @@ func initPlanets() {
 }
 
 func initFrameTicker() {
-	ticker := time.NewTicker(time.Millisecond * 10)
+	ticker := time.NewTicker(time.Millisecond * 20)
 
 	go func() {
 		for range ticker.C {
