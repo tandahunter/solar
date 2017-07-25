@@ -7,7 +7,6 @@ import (
 	"log"
 	"math"
 	"net/http"
-	"os"
 	"time"
 
 	"strconv"
@@ -44,17 +43,8 @@ func main() {
 	//Initiate a ticker to start generating some data / orbiting the planets
 	initFrameTicker()
 
-	//Determine how to make the data available.
-	//web = simple get requests only
-	//websocket = get requests for the initial data, and a websocket
-	//for the live calculations
-	if len(os.Args) > 1 {
-		switch os.Args[1] {
-		case "web":
-			initRouter()
-			break
-		}
-	}
+	//Start listening for requests
+	initRouter()
 }
 
 func initRouter() {
