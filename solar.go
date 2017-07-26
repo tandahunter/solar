@@ -54,15 +54,15 @@ func initRouter() {
 	go func() {
 		router := mux.NewRouter().StrictSlash(true)
 		router.HandleFunc("/Sun/", getSun)
-		router.HandleFunc("/Client/", getClient)
 		router.HandleFunc("/Planets/", getPlanets)
 		router.HandleFunc("/Planets/{id}/", getPlanet)
 		router.HandleFunc("/Planets/{id}/Vector/", getPlanetVector)
+		router.PathPrefix("/").Handler(http.FileServer(http.Dir("./resources/")))
 
 		log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", WebServerPort), router))
 	}()
 
-	exec.Command("cmd", "/c", "start", "http://localhost:8080/Client/").Start()
+	exec.Command("cmd", "/c", "start", "http://localhost:8080/client.3d.html").Start()
 	fmt.Printf("Solar is listening on port:%d", WebServerPort)
 
 	http.HandleFunc("/Planets/", streamPlanets)
@@ -118,11 +118,24 @@ func setCORSHeader(w http.ResponseWriter) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 }
 
-func getClient(w http.ResponseWriter, r *http.Request) {
+func getClient2D(w http.ResponseWriter, r *http.Request) {
 	if validateGet(w, r) {
 		setCORSHeader(w)
 
-		f, err := ioutil.ReadFile("resources/client.html")
+		f, err := ioutil.ReadFile("resources/client.2d.html")
+		if err != nil {
+			http.Error(w, "Failed dependency", http.StatusFailedDependency)
+		} else {
+			w.Write(f)
+		}
+	}
+}
+
+func getClient3D(w http.ResponseWriter, r *http.Request) {
+	if validateGet(w, r) {
+		setCORSHeader(w)
+
+		f, err := ioutil.ReadFile("resources/client.3d.html")
 		if err != nil {
 			http.Error(w, "Failed dependency", http.StatusFailedDependency)
 		} else {
