@@ -1,8 +1,7 @@
 <html>
 
 <head>
-    <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
-        crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
     <script src="js/three.min.js"></script>
     <script src="js/three.orbitcontrols.js"></script>
     <style type="text/css">
@@ -31,22 +30,30 @@
             scene = new THREE.Scene();
 
             var lights = [];
-            lights[0] = new THREE.PointLight(0xffffff, 1, 0);
-            lights[1] = new THREE.PointLight(0xffffff, 1, 0);
-            lights[2] = new THREE.PointLight(0xffffff, 1, 0);
+            lights[0] = new THREE.PointLight(0xffff00, 1, 0);
+            lights[1] = new THREE.PointLight(0xffff00, 1, 0);
+            lights[2] = new THREE.PointLight(0xffff00, 1, 0);
+            lights[3] = new THREE.PointLight(0xffff00, 1, 0);
+            lights[4] = new THREE.PointLight(0xffff00, 1, 0);
+            lights[5] = new THREE.PointLight(0xffff00, 1, 0);
 
-            lights[0].position.set(0, 200, 0);
-            lights[1].position.set(100, 200, 100);
-            lights[2].position.set(- 100, - 200, - 100);
+            lights[0].position.set(0, 100, 0);
+            lights[1].position.set(0, -100, 0);
+            lights[2].position.set(100, 0, -100);
+            lights[3].position.set(100, 0, 100);
+            lights[4].position.set(-100, 0, 100);
+            lights[5].position.set(-100, 0, -100);
 
             scene.add(lights[0]);
             scene.add(lights[1]);
             scene.add(lights[2]);
-
-
+            scene.add(lights[3]);
+            scene.add(lights[4]);
+            scene.add(lights[5]);
 
             renderer = new THREE.WebGLRenderer();
             renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(3);
 
             document.body.appendChild(renderer.domElement);
 
@@ -67,21 +74,31 @@
             return "ws://" + location.hostname + ":8081"
         }
 
+        function addPlanetMesh(vector) {
+            geometry = new THREE.SphereGeometry(10, 25, 25)
+            material = new THREE.MeshPhongMaterial({
+                color: 0x003300,
+                shading: THREE.SmoothShading,
+                shininess: 0,
+                wireframe: false
+            });
+
+            mesh = new THREE.Mesh(geometry, material);
+            scene.add(mesh);
+            mesh.position.set(vector.x, vector.y, vector.z);
+
+            return mesh;
+        }
+
         (function getSun() {
             $.getJSON(webServer() + "/Sun/", (d, s, x) => {
                 sun = d;
-                /*
-                var p = document.createElement("div");
-                document.body.appendChild(p);
-                p.className = "sun";
-                $(p).css("left", offsetX(d.vector.x) + 'px')
-                $(p).css("top", offsetY(d.vector.z) + 'px')
-                */
 
                 geometry = new THREE.SphereGeometry(20, 25, 25)
                 material = new THREE.MeshPhongMaterial({
                     color: 0x888800,
-                    shading: THREE.FlatShading,
+                    shading: THREE.SmoothShading,
+                    shininess: 0,
                     wireframe: false
                 });
 
@@ -94,31 +111,7 @@
         (function getPlanets() {
             $.getJSON(webServer() + "/Planets/", (d, s, x) => {
                 for (i = 0; i < d.length; i++) {
-
-                    geometry = new THREE.SphereGeometry(10, 25, 25)
-                    material = new THREE.MeshPhongMaterial({
-                        color: 0x003300,
-                        shading: THREE.FlatShading,
-                        wireframe: false
-                    });
-
-                    mesh = new THREE.Mesh(geometry, material);
-                    scene.add(mesh);
-                    mesh.position.set(d[i].vector.x, d[i].vector.y, d[i].vector.z);
-
-                    planets[d[i].id] = mesh;
-
-                    /*var p = document.createElement("div");
-                    document.body.appendChild(p);
-                    p.className = "planet";
-                    p.id = d[i].id;
-
-                    var a = document.createAttribute("id");
-                    a.value = d[i].id;
-                    p.attributes.setNamedItem(a);
-
-                    $(p).css("left", offsetX(d[i].vector.x) + 'px');
-                    $(p).css("top", offsetY(d[i].vector.z) + 'px');*/
+                    planets[d[i].id] = addPlanetMesh(d[i].vector);
                 }
             })
         }());
@@ -127,7 +120,7 @@
             var socket = new WebSocket(socketServer() + "/Planets/");
             var processing = false;
 
-            socket.onmessage = function (event) {
+            socket.onmessage = function(event) {
                 if (processing === false) {
                     processing = true;
 
@@ -140,13 +133,6 @@
                             mesh = planets[planet.id];
                             if (mesh)
                                 mesh.position.set(planet.vector.x, planet.vector.y, planet.vector.z);
-
-                            /*var p = $('#' + planet.id).first();
-
-                            if (p !== null) {
-                                $(p).css("left", offsetX(planet.vector.x) + 'px');
-                                $(p).css("top", offsetY(planet.vector.z) + 'px');
-                            }*/
                         }
                     }
 
@@ -155,17 +141,16 @@
             };
         }())
 
-        document.onmousedown = function (event) {
+        document.onmousedown = function(event) {
             var vector = new THREE.Vector3();
 
             vector.set(
-                (event.clientX / window.innerWidth) * 2 - 1,
-                - (event.clientY / window.innerHeight) * 2 + 1,
+                (event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1,
                 0.5);
 
             vector.unproject(camera);
             var dir = vector.sub(camera.position).normalize();
-            var distance = - camera.position.z / dir.z;
+            var distance = -camera.position.z / dir.z;
             var pos = camera.position.clone().add(dir.multiplyScalar(distance));
             console.log(vector);
 
@@ -196,7 +181,7 @@
                     planets[x] = mesh;
 
                 }
-            }).then(function () {
+            }).then(function() {
 
             })
 
