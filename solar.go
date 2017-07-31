@@ -75,11 +75,11 @@ func initSun() {
 
 func initPlanets() {
 	planets = solarutil.NewPlanetArray()
-	planets.AddNewPlanet(1, "Mercury", 3.30104e23, 50.32, 4.74e-5)
-	planets.AddNewPlanet(2, "Venus", 4.86732e24, 108.8, 3.5e-5)
-	planets.AddNewPlanet(3, "Earth", 5.9721986e24, 150, 2.963e-5)
-	planets.AddNewPlanet(4, "Mars", 6.41693e23, 227.94, 0.0000228175)
-	planets.AddNewPlanet(5, "Jupiter", 1.89813e27, 778.33, 0.0000129824)
+	planets.AddNewTexturedPlanet(1, "Mercury", 3.30104e23, 50.32, 4.74e-5, "img\\mercury.jpg")
+	planets.AddNewTexturedPlanet(2, "Venus", 4.86732e24, 108.8, 3.5e-5, "img\\venus.jpg")
+	planets.AddNewTexturedPlanet(3, "Earth", 5.9721986e24, 150, 2.963e-5, "img\\earth.jpg")
+	planets.AddNewTexturedPlanet(4, "Mars", 6.41693e23, 227.94, 0.0000228175, "img\\mars.jpg")
+	planets.AddNewTexturedPlanet(5, "Jupiter", 1.89813e27, 778.33, 0.0000129824, "img\\jupiter.jpg")
 }
 
 func initFrameTicker() {
